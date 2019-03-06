@@ -5,7 +5,7 @@
 타입: 데이터의 종류.
 */
 
-object ch2_1 {
+object ch2 {
   def main(args: Array[String]) {
     // 1. 값 - val <이름>: <타입> = <리터럴>
     val x: Int = 5
