@@ -114,7 +114,7 @@ object ch5
     df.filter(col("count") < 2).show(2)
     df.where("count < 2").show(2)
     // AND 필터링
-    df.where(col("count") < 2).where(col("ORIGIN_COUNTRY_NAME") != "Croatia").show(2)
+    df.where(col("count") < 2).where(col("ORIGIN_COUNTRY_NAME") =!= "Croatia").show(2)
 
     // 고유한 로우 얻기
     df.select("ORIGIN_COUNTRY_NAME", "DEST_COUNTRY_NAME").distinct().count()
@@ -140,7 +140,7 @@ object ch5
     val newDF = spark.createDataFrame(parallelizedRows, schema) 
     df.union(newDF)
       .where("count = 1")
-      .where($"ORIGIN_COUNTRY_NAME" != "United States")
+      .where($"ORIGIN_COUNTRY_NAME" =!= "United States")
       .show(2)
     )
 
