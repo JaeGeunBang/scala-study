@@ -97,9 +97,39 @@ object ch7
       dfNoNull.createOrReplaceTempView("dfNoNull")
 
       // 롤업: group-by 스타일의 다양한 연산을 수행할 수 있는 다차원 집계 기능
-      val rolledUpDF = dfNoNull.rollup("Date", "Country").agg(sum("QUantity"))
+      // - roll-up을 하면 date, country가 모두 null, null로 나오면 전체 날짜, 전체 나라의 합계를 확인할 수 있음. 
+      // - 단순히 group-by로는 날짜, 나라와 상관없이 전체 합계를 추가할 수 없음.
+      val rolledUpDF = dfNoNull.rollup("Date", "Country").agg(sum("Quantity"))
         .selectExpr("Date", "Country", "`sum(Quantity)` as total_quantity")
         .orderBy("Date")
       rolledUpDF.show()
+      /*
+      roll-up 결과
+
+      |Date, country, total_quantity|
+      |null, null, 5176450| --> roll-up을 통해 나온 결과.
+      |10.12.01, korea, 231|
+      |10.12.02, US, 234|
+      |10.12.03, France, 1211|
+      ...
+      */
+
+      // cube: 롤업을 고차원적으로 사용할 수 있음.
+      // - 요소들을 계층적으로 다루는 대신 모든 차원에 대해 동일한 작업을 수행함. (모든 날짜, 모든 나라에 합계, 모든 날짜에 합계, 모든 국가에 합께, 날짜별 국가별 합계)
+      dfNoNull.cube("Date", "Country").agg(sum("Quantity"))
+        .selectExpr("Date", "Country", "`sum(Quantity)` as total_quantity")
+        .orderBy("Date")
+      rolledUpDF.show()
+
+      /*
+      cube 결과
+
+      |Date, country, total_quantity|
+      |null, korea, 4421|
+      |null, US, 2342|
+      |null, France, 1234|
+      ...
+      --> Date로 정렬했기 때문에, Date에 null인 레코드먼저 노출되는 것. 그 아래에는 country가 null인 것도 있을 것이고, Date, country 둘 모두가 null인 레코드가 있을 것.
+      */
   }
 }
