@@ -131,5 +131,35 @@ object ch7
       ...
       --> Date로 정렬했기 때문에, Date에 null인 레코드먼저 노출되는 것. 그 아래에는 country가 null인 것도 있을 것이고, Date, country 둘 모두가 null인 레코드가 있을 것.
       */
+
+    // 그룹화 메타데이터
+    import org.apache.spark.sql.functions.{grouping_id, sum, expr}
+
+    dfNoNull.cube("Date", "Country").agg(grouping_id(), sum("Quantity"))
+      .selectExpr("Date", "Country", "`sum(Quantity)` as total_quantity")
+      .orderBy(col("grouping_id()").desc)
+    rolledUpDF.show()
+
+    /*
+    그룹화 ID = 0, Date와 Country 별 조합에 따라 총 수량 제공
+    그룹화 ID = 1, Date는 null, Country를 기반으로 총 수량 제공
+    그룹화 ID = 2, Country는 null, Date를 기반으로 총 수량 제공
+    그룹화 ID = 3, Date, Country 모두 null을 기반으로 총 수량 제공
+     */
+
+    // 5. 사용자 정의 집계 함수
+    /*
+    UDAF를 직접 제작한 함수나 비즈니스 규칙에 기반을 둔 자체 집계 함수를 정의하는 방법이며, 다음 메서드들을 정의해야함.
+    - inputSchema: UDAF 입력 파타미서를 스키마 StructType으로 정의
+    - bufferSchema: UDAF 중간 결과의 스키마를 StructType으로 정의
+    - dataType: 반환될 값의 DateType 정의
+    - deterministric: UDAF가 동일한 입력값에 대해 항상 동일한 결과를 반환하는지 불리언값으로 정의
+    - initialize: 집계용 버퍼의 값을 초기화 하는 로직을 정의
+    - update: 입력받은 로우를 기반으로 내부 버퍼를 업데이트하는 로직 정의
+    - merge: 두 개의 집계용 버퍼를 병합하는 로직을 정의
+    - evaluate: 집계의 최종 결과를 생성하는 로직을 정의
+    자세한 코드는 내용 참고.
+     */
+
   }
 }
