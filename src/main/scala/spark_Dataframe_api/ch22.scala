@@ -5,7 +5,6 @@ object ch22
   def main(args: Array[String]) {
     val static = spark.read.json("")
     val streaming = spark.readStream.schema(static.schema).option("maxFilesPerTrigger", 10).json("")
-
     // 이벤트 시간 윈도우
     // 1. 타임스탬프 컬럼을 적절한 스파크 SQL 타임스템프 데이터 타입으로 변환.
     val withEventTime = streaming.selectExpr(
