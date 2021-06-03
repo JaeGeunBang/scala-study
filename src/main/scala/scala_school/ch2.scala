@@ -1,111 +1,106 @@
 
 /*
-스칼라 사용 이뮤
-- 1급 함수
-- 클로저
-
-간결함
-- 타입 추론
-- 함수 리터널
-
-
-해당 챕터는 식, 값, 함수, 클래스, 상속, 트레잇에 대해 배운다.
+케이스 클래스, 객체, 패키지, apply, update, 함수는 객체이다, 패턴 매치
 */
 
-object ch1 {
+object ch2 {
   def main(args: Array[String]): Unit = {
-    // 간단하게 함수를 만들수 있음.
-    def addOne(m: Int): Int = m + 1
-    val three = addOne(2)
-    println(three)
-
-    def three2() = 1 + 2
-    println(three2())
-
-    def timesTwo(i: Int): Int = {
-      i * 2
+    // apply 메서드를 통해 클래스나 객체의 용도가 주로 하나아 있는 경우를 표현할수 있음
+    class Foo {}
+    object FooMaker{
+      def apply() = new Foo
     }
 
-    // 이름 없는 함수
-    val addOne2 = (x: Int) => x + 1
-    println(addOne2(1))
+    class Bar {
+      def apply() = 0
+    }
+    val bar = new Bar
+    println(bar())
 
-    // 인자의 일부만 사용해 호출
-    def adder(m: Int, n: Int) = m + n
-    val add2 = adder(2, _:Int) // 2는 이미 고정 시키고, 3만 받도록 add2 함수를 다시 만듦
-    println(add2(3))
+    // 객체 (object)는 클래스의 유일한 인스턴스를 넣기 위해 사용.
+    /// new 없이도 생성할수 있다.
+    object Timer {
+      var count = 0
 
-    // 커리 함수
-    /// 함수의 인자중 일부만 적용하고, 나머지 인자는 나중에 적용할수 있음
-    def multiply(m: Int)(n: Int): Int = m * n
-    println(multiply(2)(3))
-    val timesTwo2 = multiply(2) _
-    println(timesTwo2(3))
-
-    // 가변 길이 인자
-    def capitalizeAll(args: String*): Unit = {
-      args.map { args =>
-        args.capitalize
+      def currentCount(): Long = {
+        count += 1
+        count
       }
     }
-    capitalizeAll("rarity", "applejack")
+    println(Timer.currentCount())
 
-    // 클래스
-    class Calculator {
-      val brand: String = "HP"
-      def add(m: Int, n: Int): Int = m + n
+    // 짝 객체. 보통 팩토리를 만들때 사용한다.
+    class Bar2(foo:String)
+    object Bar2 {
+      def apply(foo: String) = new Bar2(foo)
     }
-    val calc = new Calculator
-    println(calc.add(1,2))
-    print(calc.brand)
 
-    // 클래스 - 생성자
-    /// 입력받은 brand를 통해 color 값이 정해진다. (java, python 처럼 생성자가 존재하지 않는다.)
-    class Calculator(brand: String) {
-      val color: String = if (brand == "TI") {
-        "blue"
-      } else if (brand = "HP") {
-        "black"
-      } else {
-        "white"
+    // 함수는 객체이다.
+    /// Function은 1~22까지 있음. 22인 이유는 22가 넘는게 잘 없어
+    object addOne extends Function1[Int, Int] {
+      def apply(m: Int): Int = m + 1
+    }
+    object addOne2 extends (Int => Int) {
+      def apply(m: Int): Int = m + 1
+    }
+
+    // 패턴 매칭
+    val times = 1
+    times match {
+      case 1 => "one"
+      case 2 => "two"
+      case _ => "some other number"
+    }
+    times match {
+      case i if i == 1 => "one"
+      case i if i == 2 => "two"
+      case _ => "some other number"
+    }
+    // 타입 매칭
+    def bigger(o: Any): Any = {
+      o match {
+        case i: Int if i < 0 => i - 1
+        case i: Int => i + 1
+        case d: Double if d < 0.0 => d - 0.1
+        case d: Double => d + 0.1
+        case text: String => text + "s"
       }
-
-      def add(m: Int, n: Int): Int = m + n
     }
 
-    // 상속
-    class ScientificCalculator(brand: String) extends Calculator(brand) {
-      def log(m: Double, base:Double) = math.log(m) / math.log(base)
-    }
-    /// 상속 오버라이딩
-    class EvenMoreScientificCalculator(brand: String) extends ScientificCalculator(brand) {
-      def log(m: Int): Double = log(m, math.exp(1))
+    // case class
+    /// 내용을 어떤 클래스에 저장하고,그에 따라 매치하고 싶은 경우 사용한다.
+    /// new를 사용하지 않고도 케이스 클래스의 인스턴스 생성이 가능
+    case class Calculator(brand: String, model: String)
+    val hp20b = Calculator("HP", "20b")
+    val hp20B = Calculator("HP", "20b")
+    println(hp20b == hp20B)
+
+    def calcType(calc: Calculator) = calc match {
+      case Calculator("HP", "20B") => "financial"
+      case Calculator("HP", "48G") => "scientific"
+      case Calculator("HP", "30B") => "business"
+      case Calculator(ourBrand, ourModel) => "Calculator: %s %s is of unknown type".format(ourBrand, ourModel)
     }
 
-    // 추상 클래스
-    abstract class Shape {
-      def getArea(): Int
+    // 예외
+    try {
+      remoteCalculatorService.add(1, 2)
+    } catch {
+      case e: ServerIsDownException => log.error(e, "the remote calculator service is unavailble. should have kept your trustry HP.")
+    } finally {
+      remoteCalculatorService.close()
     }
 
-    class Circle(r: Int) extends Shape {
-      def getArea(): Int = {r * r * 3}
+    val result: Int = try {
+      remoteCalculatorService.add(1, 2)
+    } catch {
+      case e: ServerIsDownException => {
+        log.error(e, "the remote calculator service is unavailble. should have kept your trustry HP.")
+        0
+      }
+    } finally {
+      remoteCalculatorService.close()
     }
-
-    // Trait (자바의 인터페이스)
-    /// 추상 클래스와의 중요한 차이점은?
-    /// 트레잇은 여러개를 사용할수 있다. 상속은 오로지 하나만 가능. 되도록이면 트레잇을 써라.
-    /// 생성자 매개변수가 필요한 경우엔 추상 클래스를 사용하라. 생성자는 매개변수를 받지만, 트레잇은 매개변수를 못받
-    trait Car {
-      val brand: String
-    }
-    trait Shiny {
-      val shineRefraction: Int
-    }
-    class BMW extends Car with Shiny{
-      val brand = "BMW"
-      val shineRefraction = 12
-    }
-
   }
 }
 

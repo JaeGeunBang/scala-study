@@ -84,7 +84,7 @@ object ch5 {
     // Input, output 타입을 지정할 수 있음.
     def tripleOp[A,B](a:A, b:A, c:A, f: (A,A,A) => B) = f(a,b,c)
     tripleOp[Int, Int](23, 92, 14, _ * _ + _)
-    tripleOp[Int, Double](23, 92, 14, 1.0 * _ / _ / _)
+    tripleOp[Int, Double]일(23, 92, 14, 1.0 * _ / _ / _)
     tripleOp[Int, Boolean](23, 92, 14, _ > _ + _)
 
     // 5. 부분 적용 함수와 커링
